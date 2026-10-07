@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер: Множення у стовпчик (Альбомна версія)</title>
+    <style>
+        :root {
+            /* Контрастна чорно-жовта палітра */
+            --bg-color: #000000;
+            --text-color: #FFFF00;
+            --accent-color: #FFD700;
+            --border-color: #FFFF00;
+            --input-bg: #141414;
+            --input-focus-bg: #2b2b00;
+            
+            /* Кольори перевірки */
+            --correct-color: #00FF00;
+            --correct-bg: #003300;
+            --incorrect-color: #FF3333;
+            --incorrect-bg: #330000;
+
+            --font-size-base: 22px;
+            --font-size-input: 38px;
+            --border-width: 3px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-size: var(--font-size-base);
+            font-weight: bold;
+        }
+
+        .container {
+            border: var(--border-width) solid var(--border-color);
+            padding: 25px;
+            border-radius: 16px;
+            background-color: #0a0a0a;
+            box-shadow: 0 0 25px rgba(255, 255, 0, 0.35);
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            border-bottom: var(--border-width) solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        /* Альбомна двоколонкова сітка */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 25px;
+            align-items: start;
+        }
+
+        /* Ліва панель */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        select, button {
+            padding: 14px 18px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: inherit;
+            border-radius: 8px;
+            border: var(--border-width) solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        select {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        button {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+        }
+
+        button:hover, button:focus {
+            background-color: var(--accent-color);
+            box-shadow: 0 0 15px #ffff00;
+            outline: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #111;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .stats-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stats-label { font-size: 16px; color: #ccc; }
+        .stats-val { font-size: 28px; color: var(--accent-color); }
+
+        .typhlo-comment {
+            background-color: #1a1a00;
+            border: 2px dashed var(--accent-color);
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 17px;
+            line-height: 1.4;
+        }
+
+        .typhlo-title {
+            color: var(--accent-color);
+            text-transform: uppercase;
+            font-size: 16px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* Права панель (Збільшена робоча зона) */
+        .workspace-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #050505;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 480px;
+            justify-content: center;
+        }
+
+        .workspace {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .grid-container {
+            display: grid;
+            gap: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: var(--font-size-input);
+        }
+
+        .cell {
+            width: 60px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .cell input {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: var(--font-size-input);
+            font-weight: bold;
+            font-family: inherit;
+            border: var(--border-width) solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .cell input:focus {
+            border-width: 5px;
+            border-color: #ffffff;
+            background-color: var(--input-focus-bg);
+            box-shadow: 0 0 15px #ffffff;
+        }
+
+        .cell input.carry-input {
+            font-size: 20px;
+            color: var(--accent-color);
+            border-style: dashed;
+            height: 40px;
+            margin-bottom: auto;
+        }
+
+        .cell.operator {
+            color: var(--accent-color);
+            font-size: 48px;
+        }
+
+        .line {
+            grid-column: 1 / -1;
+            height: 5px;
+            background-color: var(--border-color);
+            margin: 6px 0;
+            border-radius: 3px;
+        }
+
+        .correct {
+            border-color: var(--correct-color) !important;
+            background-color: var(--correct-bg) !important;
+            color: var(--correct-color) !important;
+        }
+
+        .incorrect {
+            border-color: var(--incorrect-color) !important;
+            background-color: var(--incorrect-bg) !important;
+            color: var(--incorrect-color) !important;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            min-height: 40px;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        .feedback.success {
+            background-color: var(--correct-bg);
+            color: var(--correct-color);
+            border: 2px solid var(--correct-color);
+        }
+
+        .feedback.error {
+            background-color: var(--incorrect-bg);
+            color: var(--incorrect-color);
+            border: 2px solid var(--incorrect-color);
+        }
+
+        .hint-text {
+            font-size: 15px;
+            color: #aaa;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Множення у стовпчик</h1>
+
+    <div class="main-layout">
+        <div class="left-panel">
+            <div class="controls">
+                <select id="difficulty" onchange="generateProblem()">
+                    <option value="1">2 цифри × 1 цифра</option>
+                    <option value="2">3 цифри × 1 цифра</option>
+                    <option value="3">2 цифри × 2 цифри</option>
+                    <option value="4" selected>3 цифри × 2 цифри</option>
+                    <option value="5">4 цифри × 2 цифри</option>
+                    <option value="6">4 цифри × 3 цифри</option>
+                    <option value="7">5 цифр × 2 цифри</option>
+                    <option value="8">5 цифр × 3 цифри</option>
+                </select>
+                <button onclick="generateProblem()">Новий приклад</button>
+                <button style="background-color: var(--correct-bg); color: var(--correct-color); border-color: var(--correct-color);" onclick="checkAnswer()">Перевірити</button>
+            </div>
+
+            <div class="stats">
+                <div class="stats-item">
+                    <span class="stats-label">ПРАВИЛЬНО:</span>
+                    <span id="score-correct" class="stats-val">0</span>
+                </div>
+                <div class="stats-item">
+                    <span class="stats-label">СПРОБ:</span>
+                    <span id="score-total" class="stats-val">0</span>
+                </div>
+            </div>
+
+            <div class="typhlo-comment" aria-live="polite">
+                <span class="typhlo-title">🔍 Тифлокоментар:</span>
+                <div id="typhlo-text">Ініціалізація завдання...</div>
+            </div>
+        </div>
+
+        <div class="workspace-panel">
+            <div class="workspace">
+                <div id="grid" class="grid-container"></div>
+            </div>
+            <div id="feedback" class="feedback" style="display: none;"></div>
+            <div class="hint-text">* Верхній ряд малих пунктирних клітинок призначений для пам'ятки переносу.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var num1 = 0;
+    var num2 = 0;
+    var scoreCorrect = 0;
+    var scoreTotal = 0;
+    var inputsArray = [];
+
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function updateTyphloComment(customStatus) {
+        var str1 = num1.toString();
+        var str2 = num2.toString();
+        var str2Len = str2.length;
+        
+        var text = "Приклад: помножити " + num1 + " (" + str1.length + "-цифрове) на " + num2 + " (" + str2Len + "-цифрове).<br><br>";
+        
+        if (str2Len === 1) {
+            text += "Сітка містить:<br>• Верхній ряд — клітинки для переносу.<br>• Підсумковий ряд — для заповнення відповіді.";
+        } else {
+            text += "Сітка містить:<br>• Верхній ряд — клітинки переносу.<br>• " + str2Len + " проміжних рядки(ів) множення із зсувом.<br>• Нижній ряд — підсумкове додавання.";
+        }
+
+        if (customStatus) {
+            text += "<br><br><strong>Результат:</strong> " + customStatus;
+        }
+
+        var elem = document.getElementById('typhlo-text');
+        if (elem) {
+            elem.innerHTML = text;
+        }
+    }
+
+    function generateProblem() {
+        var level = document.getElementById('difficulty').value;
+        var feedback = document.getElementById('feedback');
+        if (feedback) {
+            feedback.innerText = '';
+            feedback.className = 'feedback';
+            feedback.style.display = 'none';
+        }
+
+        if (level === '1') {
+            num1 = getRandomInt(12, 99);
+            num2 = getRandomInt(2, 9);
+        } else if (level === '2') {
+            num1 = getRandomInt(102, 999);
+            num2 = getRandomInt(2, 9);
+        } else if (level === '3') {
+            num1 = getRandomInt(12, 99);
+            num2 = getRandomInt(10, 99);
+        } else if (level === '4') {
+            num1 = getRandomInt(102, 999);
+            num2 = getRandomInt(10, 99);
+        } else if (level === '5') {
+            num1 = getRandomInt(1002, 9999);
+            num2 = getRandomInt(10, 99);
+        } else if (level === '6') {
+            num1 = getRandomInt(1002, 9999);
+            num2 = getRandomInt(100, 999);
+        } else if (level === '7') {
+            num1 = getRandomInt(10002, 99999);
+            num2 = getRandomInt(10, 99);
+        } else if (level === '8') {
+            num1 = getRandomInt(10002, 99999);
+            num2 = getRandomInt(100, 999);
+        }
+
+        renderGrid();
+        updateTyphloComment();
+    }
+
+    function renderGrid() {
+        var grid = document.getElementById('grid');
+        if (!grid) return;
+        
+        grid.innerHTML = '';
+        inputsArray = [];
+
+        var str1 = num1.toString();
+        var str2 = num2.toString();
+        var totalProduct = num1 * num2;
+        var strProduct = totalProduct.toString();
+
+        var cols = Math.max(strProduct.length + 1, str1.length + 2);
+        grid.style.gridTemplateColumns = 'repeat(' + cols + ', 60px)';
+
+        // 1. Рядок переносу в пам'ять
+        for (var c = 0; c < cols; c++) {
+            var cell = document.createElement('div');
+            cell.className = 'cell';
+            if (c > 0 && c <= str1.length + 1) {
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.maxLength = 1;
+                input.className = 'carry-input';
+                cell.appendChild(input);
+                inputsArray.push(input);
+            }
+            grid.appendChild(cell);
+        }
+
+        // 2. Верхній множник
+        for (var c = 0; c < cols; c++) {
+            var cell = document.createElement('div');
+            cell.className = 'cell';
+            var charIndex = c - (cols - str1.length);
+            if (charIndex >= 0) {
+                cell.innerText = str1[charIndex];
+            }
+            grid.appendChild(cell);
+        }
+
+        // 3. Нижній множник
+        for (var c = 0; c < cols; c++) {
+            var cell = document.createElement('div');
+            cell.className = 'cell';
+            if (c === cols - str2.length - 1) {
+                cell.innerText = '×';
+                cell.classList.add('operator');
+            } else {
+                var charIndex = c - (cols - str2.length);
+                if (charIndex >= 0) {
+                    cell.innerText = str2[charIndex];
+                }
+            }
+            grid.appendChild(cell);
+        }
+
+        // Лінія
+        var line1 = document.createElement('div');
+        line1.className = 'line';
+        grid.appendChild(line1);
+
+        // 4. Проміжні результати
+        if (str2.length > 1) {
+            for (var i = 0; i < str2.length; i++) {
+                var digit = parseInt(str2[str2.length - 1 - i]);
+                var partialStr = (digit === 0) ? '0'.repeat(str1.length) : (num1 * digit).toString();
+
+                for (var c = 0; c < cols; c++) {
+                    var cell = document.createElement('div');
+                    cell.className = 'cell';
+                    
+                    var shift = i;
+                    var charIndex = c - (cols - partialStr.length - shift);
+
+                    if (charIndex >= 0 && charIndex < partialStr.length) {
+                        var input = document.createElement('input');
+                        input.type = 'text';
+                        input.maxLength = 1;
+                        input.className = 'partial-input';
+                        input.dataset.ans = partialStr[charIndex];
+                        cell.appendChild(input);
+                        inputsArray.push(input);
+                    } else if (i > 0 && c === cols - partialStr.length - shift - 1) {
+                        cell.innerText = '+';
+                        cell.classList.add('operator');
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+
+            // Друга лінія
+            var line2 = document.createElement('div');
+            line2.className = 'line';
+            grid.appendChild(line2);
+        }
+
+        // 5. Остаточний результат
+        for (var c = 0; c < cols; c++) {
+            var cell = document.createElement('div');
+            cell.className = 'cell';
+            var charIndex = c - (cols - strProduct.length);
+
+            if (charIndex >= 0) {
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.maxLength = 1;
+                input.className = 'final-input';
+                input.dataset.ans = strProduct[charIndex];
+                cell.appendChild(input);
+                inputsArray.push(input);
+            }
+            grid.appendChild(cell);
+        }
+
+        setupInputAutoTab();
+    }
+
+    function setupInputAutoTab() {
+        inputsArray.forEach(function(input, index) {
+            input.addEventListener('input', function(e) {
+                var val = e.target.value.trim();
+                if (!/^\d$/.test(val) && val !== '') {
+                    e.target.value = '';
+                    return;
+                }
+                
+                if (val.length === 1 && index > 0) {
+                    inputsArray[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && !e.target.value && index < inputsArray.length - 1) {
+                    inputsArray[index + 1].focus();
+                } else if (e.key === 'ArrowLeft' && index > 0) {
+                    e.preventDefault(); 
+                    inputsArray[index - 1].focus();
+                } else if (e.key === 'ArrowRight' && index < inputsArray.length - 1) {
+                    e.preventDefault(); 
+                    inputsArray[index + 1].focus();
+                }
+            });
+            
+            input.addEventListener('focus', function(e) {
+                e.target.select();
+            });
+        });
+    }
+
+    function checkAnswer() {
+        var partialInputs = document.querySelectorAll('.partial-input');
+        var finalInputs = document.querySelectorAll('.final-input');
+        var feedback = document.getElementById('feedback');
+        var isCorrect = true;
+
+        document.querySelectorAll('input').forEach(function(i) {
+            i.classList.remove('correct', 'incorrect');
+        });
+
+        partialInputs.forEach(function(input) {
+            var expected = input.dataset.ans;
+            var val = input.value.trim();
+            if (val === expected) { 
+                input.classList.add('correct'); 
+            } else { 
+                input.classList.add('incorrect'); 
+                isCorrect = false; 
+            }
+        });
+
+        finalInputs.forEach(function(input) {
+            var expected = input.dataset.ans;
+            var val = input.value.trim();
+            if (val === expected) { 
+                input.classList.add('correct'); 
+            } else { 
+                input.classList.add('incorrect'); 
+                isCorrect = false; 
+            }
+        });
+
+        scoreTotal++;
+
+        if (feedback) {
+            feedback.style.display = 'block';
+            if (isCorrect) {
+                scoreCorrect++;
+                feedback.innerText = 'ВІДМІННО! ПРАВИЛЬНА ВІДПОВІДЬ! 🎉';
+                feedback.className = 'feedback success';
+                updateTyphloComment('<span style="color: #00FF00;">Усі клітинки заповнені правильно!</span>');
+            } else {
+                feedback.innerText = 'ПОМИЛКА. ПЕРЕВІР ЧЕРВОНІ КЛІТИНКИ ТА СПРОБУЙ ЗНОВУ.';
+                feedback.className = 'feedback error';
+                updateTyphloComment('<span style="color: #FF3333;">Виявлено помилки у виділених клітинках.</span>');
+            }
+        }
+
+        document.getElementById('score-correct').innerText = scoreCorrect;
+        document.getElementById('score-total').innerText = scoreTotal;
+    }
+
+    // Запуск при ініціалізації сторінки
+    document.addEventListener('DOMContentLoaded', generateProblem);
+    window.onload = function() {
+        if (num1 === 0) generateProblem();
+    };
+</script>
+
+</body>
+</html>
